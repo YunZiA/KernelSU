@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -60,6 +61,8 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.component.ChooseKmiDialog
+import me.weishu.kernelsu.ui.component.navigation.navigateEx
+import me.weishu.kernelsu.ui.component.navigation.popBackStackEx
 import me.weishu.kernelsu.ui.component.rememberConfirmDialog
 import me.weishu.kernelsu.ui.util.LkmSelection
 import me.weishu.kernelsu.ui.util.getAvailablePartitions
@@ -118,7 +121,7 @@ fun InstallScreen(navigator: DestinationsNavigator) {
                 ota = isOta,
                 partition = partitionSelection
             )
-            navigator.navigate(FlashScreenDestination(flashIt)) {
+            navigator.navigateEx(FlashScreenDestination(flashIt)) {
                 launchSingleTop = true
             }
         }
@@ -176,10 +179,13 @@ fun InstallScreen(navigator: DestinationsNavigator) {
         tint = HazeTint(colorScheme.surface.copy(0.8f))
     )
 
+    BackHandler {
+        navigator.popBackStackEx()
+    }
     Scaffold(
         topBar = {
             TopBar(
-                onBack = dropUnlessResumed { navigator.popBackStack() },
+                onBack = dropUnlessResumed { navigator.popBackStackEx() },
                 scrollBehavior = scrollBehavior,
                 hazeState = hazeState,
                 hazeStyle = hazeStyle,

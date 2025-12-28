@@ -67,6 +67,7 @@ class TemplateViewModel : ViewModel() {
         templates.sortedWith(comparator).apply {
             isRefreshing = false
         }
+        listOf(TemplateInfo())
     }
 
     suspend fun fetchTemplates(sync: Boolean = false) {

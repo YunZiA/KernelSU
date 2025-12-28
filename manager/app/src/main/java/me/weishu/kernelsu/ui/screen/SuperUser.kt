@@ -77,6 +77,7 @@ import me.weishu.kernelsu.ui.component.AppIconImage
 import me.weishu.kernelsu.ui.component.DropdownItem
 import me.weishu.kernelsu.ui.component.SearchBox
 import me.weishu.kernelsu.ui.component.SearchPager
+import me.weishu.kernelsu.ui.component.navigation.navigateEx
 import me.weishu.kernelsu.ui.theme.isInDarkTheme
 import me.weishu.kernelsu.ui.util.ownerNameForUid
 import me.weishu.kernelsu.ui.util.pickPrimary
@@ -234,7 +235,7 @@ fun SuperUserPager(
                                     }
                                 },
                             ) {
-                                navigator.navigate(AppProfileScreenDestination(group.primary)) {
+                                navigator.navigateEx(AppProfileScreenDestination(group.primary)) {
                                     launchSingleTop = true
                                 }
                             }
@@ -354,7 +355,7 @@ fun SuperUserPager(
                                             }
                                         }
                                     ) {
-                                        navigator.navigate(AppProfileScreenDestination(group.primary)) {
+                                        navigator.navigateEx(AppProfileScreenDestination(group.primary)) {
                                             launchSingleTop = true
                                         }
                                     }
