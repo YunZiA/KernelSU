@@ -211,7 +211,6 @@ fun AppProfileTemplateScreen(
 
     Box(
         modifier = Modifier
-            .background(MiuixTheme.colorScheme.surface)
             .hazeEffect {
                 noiseFactor = 0f
                 blurEnabled = blur.value != 0.dp
@@ -219,7 +218,6 @@ fun AppProfileTemplateScreen(
                 blurRadius = blur.value
             }
     ){
-
         BackHandler {
             navigator.popBackStackEx()
         }
@@ -298,7 +296,7 @@ fun AppProfileTemplateScreen(
                         .border(0.05.dp, colorScheme.outline.copy(alpha = 0.5f), CircleShape),
                     contentModifier = Modifier
                         .fabShareBounds(
-                            key = TransitionSource.FAB,
+                            key = "",
                             sharedTransitionScope = sharedTransitionScope,
                             animatedVisibilityScope = animatedVisibilityScope
                         ),
@@ -390,12 +388,11 @@ private fun TemplateItem(
     SharedTransitionCard(
         modifier = Modifier
             .cardShareBounds(
-                key = TransitionSource.LIST_CARD,
+                key = template.id,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
                 cardRadius = CardDefaults.CornerRadius
-            )
-        ,
+            ),
         onClick = {
             navigator.navigateEx(TemplateEditorScreenDestination(template, TransitionSource.LIST_CARD,!template.local)) {
                 popUpTo(TemplateEditorScreenDestination) {

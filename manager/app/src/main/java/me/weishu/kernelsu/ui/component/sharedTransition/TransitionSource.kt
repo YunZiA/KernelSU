@@ -5,6 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 enum class TransitionSource : Parcelable {
+    NULL,
     FAB,
     LIST_CARD
 }

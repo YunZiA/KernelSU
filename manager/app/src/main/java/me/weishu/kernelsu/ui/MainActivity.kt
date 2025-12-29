@@ -53,6 +53,8 @@ import com.ramcosta.composedestinations.generated.destinations.ModuleRepoDetailS
 import com.ramcosta.composedestinations.generated.destinations.ModuleRepoScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.SettingPagerDestination
 import com.ramcosta.composedestinations.generated.destinations.TemplateEditorScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.TemplateScreenDestination
+import com.ramcosta.composedestinations.generated.navArgs
 import com.ramcosta.composedestinations.navargs.primitives.booleanNavType
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.scope.resultBackNavigator
@@ -74,6 +76,7 @@ import me.weishu.kernelsu.ui.component.navigation.navigateEx
 import me.weishu.kernelsu.ui.component.navigation.noAnimated
 import me.weishu.kernelsu.ui.component.navigation.slideFromRightTransition
 import me.weishu.kernelsu.ui.component.rememberConfirmDialog
+import me.weishu.kernelsu.ui.component.sharedTransition.TransitionSource
 import me.weishu.kernelsu.ui.screen.AboutScreen
 import me.weishu.kernelsu.ui.screen.AppProfileScreen
 import me.weishu.kernelsu.ui.screen.AppProfileTemplateScreen
@@ -170,7 +173,7 @@ class MainActivity : ComponentActivity() {
                         miuixComposable(ExecuteModuleActionScreenDestination){ ExecuteModuleActionScreen(destinationsNavigator,navArgs.moduleId) }
                         miuixComposable(FlashScreenDestination){ FlashScreen(destinationsNavigator,navArgs.flashIt) }
                         miuixComposable(FlashScreenDestination){ FlashScreen(destinationsNavigator, navArgs.flashIt) }
-                        miuixComposable(TemplateEditorScreenDestination,noAnimated){
+                        miuixComposable(TemplateScreenDestination){
                             val (initialTemplate,transitionSource, readOnly) = navArgs
                             TemplateEditorScreen(
                                 navigator = resultBackNavigator(booleanNavType),
@@ -180,7 +183,17 @@ class MainActivity : ComponentActivity() {
                                 readOnly = readOnly
                             )
                         }
-                        miuixComposable(AppProfileTemplateScreenDestination,slideFromRightTransition){
+                        miuixComposable(TemplateEditorScreenDestination, noAnimated){
+                            val (initialTemplate,transitionSource, readOnly) = navArgs
+                            TemplateEditorScreen(
+                                navigator = resultBackNavigator(booleanNavType),
+                                animatedVisibilityScope = this@miuixComposable,
+                                initialTemplate = initialTemplate,
+                                transitionSource = transitionSource,
+                                readOnly = readOnly
+                            )
+                        }
+                        miuixComposable(AppProfileTemplateScreenDestination, slideFromRightTransition){
                             AppProfileTemplateScreen(
                                 navigator = destinationsNavigator,
                                 resultRecipient = resultRecipient(booleanNavType)

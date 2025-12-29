@@ -54,6 +54,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AppProfileTemplateScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.TemplateEditorScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.TemplateScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.scope.AnimatedDestinationScope
 import dev.chrisbanes.haze.HazeState
@@ -208,7 +209,7 @@ fun AppProfileScreen(
                     affectedApps = sameUidApps,
                     onViewTemplate = {
                         getTemplateInfoById(it)?.let { info ->
-                            navigator.navigateEx(TemplateEditorScreenDestination(info,TransitionSource.LIST_CARD)) {
+                            navigator.navigateEx(TemplateScreenDestination(info,TransitionSource.NULL)) {
                                 launchSingleTop = true
                             }
                         }
@@ -279,13 +280,7 @@ private fun AppProfileInner(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp)
-                .padding(bottom = 12.dp)
-                .cardShareBounds(
-                    key = TransitionSource.LIST_CARD,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedVisibilityScope = animatedVisibilityScope,
-
-                ),
+                .padding(bottom = 12.dp),
             insideMargin = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
         ) {
             Row(
@@ -479,6 +474,8 @@ private fun AppProfileInner(
                 ) {
                     TemplateConfig(
                         profile = profile,
+                        sharedTransitionScope =  sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope,
                         onViewTemplate = onViewTemplate,
                         onManageTemplate = onManageTemplate,
                         onProfileChange = onProfileChange

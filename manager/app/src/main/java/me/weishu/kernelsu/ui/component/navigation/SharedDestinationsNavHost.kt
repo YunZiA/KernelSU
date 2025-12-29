@@ -67,7 +67,7 @@ import kotlin.reflect.KType
 val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { null }
 val localPopState = compositionLocalOf { false }
 val LocalAnimatedVisibilityScope =  compositionLocalOf<AnimatedVisibilityScope?> { null }
-val routePopupState = mutableMapOf<String, Boolean>()
+val routePopupState = RoutePopupStack()
 @Composable
 fun SharedDestinationsNavHost(
     navGraph: NavHostGraphSpec,
@@ -84,7 +84,7 @@ fun SharedDestinationsNavHost(
         CompositionLocalProvider(
             LocalSharedTransitionScope provides this@SharedTransitionLayout,
         ) {
-            routePopupState[NavGraphs.root.startRoute.route] = true
+            routePopupState.put( NavGraphs.root.startRoute.route, true)
             DestinationsNavHost(
                 modifier = modifier,
                 engine = engine,

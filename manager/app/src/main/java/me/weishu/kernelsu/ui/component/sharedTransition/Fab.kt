@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.SharedTransitionScope.PlaceholderSize.Companion.ContentSize
 import androidx.compose.animation.SharedTransitionScope.ResizeMode.Companion.RemeasureToBounds
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDp
@@ -23,7 +24,7 @@ import me.weishu.kernelsu.ui.component.navigation.MiuixNavHostDefaults.SHARETRAN
 
 @Composable
 fun Modifier.fabShareBounds(
-    key: TransitionSource,
+    key: Any,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope,
     fabRadius : Dp = 30.dp
@@ -33,14 +34,10 @@ fun Modifier.fabShareBounds(
             if (this == null) return Modifier
 
             val pagerCorner: State<Dp> = animatedVisibilityScope.transition.animateDp({
-                tween(
-                    650,
-                    easing = LinearOutSlowInEasing
-                )
+                tween(SHARETRANSITION_DURATION, 0, NavAnimationEasing)
             }) { enterExitState ->
                 when (enterExitState) {
                     EnterExitState.PreEnter, EnterExitState.PostExit -> getCornerRadiusTop()
-
                     EnterExitState.Visible -> with(LocalDensity.current) {
                         fabRadius
                     }
@@ -48,7 +45,7 @@ fun Modifier.fabShareBounds(
 
             }
             Modifier.sharedBounds(
-                sharedContentState = rememberSharedContentState(key = key),
+                sharedContentState = rememberSharedContentState(key = "${TransitionSource.FAB}/$key"),
                 animatedVisibilityScope = animatedVisibilityScope,
                 resizeMode = RemeasureToBounds,
                 clipInOverlayDuringTransition = OverlayClip(ContinuousRoundedRectangle(pagerCorner.value)),

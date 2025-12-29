@@ -76,12 +76,17 @@ import top.yukonga.miuix.kmp.utils.scrollEndHaptic
  * @date 2023/10/20.
  */
 @Composable
-@Destination<RootGraph>
+@Destination<RootGraph>(
+    route = "TemplateScreen"
+)
+@Destination<RootGraph>(
+    route = "TemplateEditorScreen"
+)
 fun TemplateEditorScreen(
     navigator: ResultBackNavigator<Boolean>,
     animatedVisibilityScope: AnimatedVisibilityScope,
     initialTemplate: TemplateViewModel.TemplateInfo,
-    transitionSource : TransitionSource,
+    transitionSource : TransitionSource = TransitionSource.NULL,
     readOnly: Boolean = true,
 ) {
 
@@ -107,7 +112,8 @@ fun TemplateEditorScreen(
     Box(
         modifier = Modifier
             .screenShareBounds(
-                key = transitionSource,
+                key = template.id,
+                transitionSource = transitionSource,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
             )

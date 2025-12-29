@@ -5,6 +5,7 @@ import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.SharedTransitionScope.PlaceholderSize.Companion.AnimatedSize
+import androidx.compose.animation.SharedTransitionScope.PlaceholderSize.Companion.ContentSize
 import androidx.compose.animation.SharedTransitionScope.ResizeMode.Companion.RemeasureToBounds
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.tween
@@ -23,7 +24,7 @@ import top.yukonga.miuix.kmp.basic.CardDefaults
 
 @Composable
 fun Modifier.cardShareBounds(
-    key: TransitionSource,
+    key: Any,
     sharedTransitionScope: SharedTransitionScope?,
     animatedVisibilityScope: AnimatedVisibilityScope,
     cardRadius : Dp = CardDefaults.CornerRadius
@@ -46,11 +47,11 @@ fun Modifier.cardShareBounds(
             }
 
             Modifier.sharedBounds(
-                sharedContentState = rememberSharedContentState(key = key),
+                sharedContentState = rememberSharedContentState(key = "${TransitionSource.LIST_CARD}/${key}"),
                 animatedVisibilityScope = animatedVisibilityScope,
                 resizeMode = RemeasureToBounds,
                 clipInOverlayDuringTransition = OverlayClip(ContinuousRoundedRectangle(pagerCorner.value)),
-                placeholderSize = AnimatedSize,
+                placeholderSize = ContentSize,
                 boundsTransform = BoundsTransform { _, _ ->
                     tween(SHARETRANSITION_DURATION, 0, NavAnimationEasing)
                 },
