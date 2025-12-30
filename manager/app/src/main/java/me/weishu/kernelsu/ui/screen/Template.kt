@@ -199,14 +199,14 @@ fun AppProfileTemplateScreen(
 
     val blur = state.animateDp( { tween(SHARETRANSITION_DURATION, 0, NavAnimationEasing) }) { enterExitState ->
         when (enterExitState) {
-            EnterExitState.PreEnter,EnterExitState.PostExit -> if (isPop) 20.dp else 0.dp
+            EnterExitState.PreEnter, EnterExitState.PostExit -> if (isPop) 20.dp else 0.dp
             EnterExitState.Visible -> 0.dp
         }
 
     }
     val scale = state.animateFloat({ tween(SHARETRANSITION_DURATION, 0, NavAnimationEasing) }) { enterExitState ->
         when (enterExitState) {
-            EnterExitState.PreEnter,EnterExitState.PostExit -> if (isPop) 0.9f else 1f
+            EnterExitState.PreEnter, EnterExitState.PostExit -> if (isPop) 0.9f else 1f
             EnterExitState.Visible -> 1f
         }
 
