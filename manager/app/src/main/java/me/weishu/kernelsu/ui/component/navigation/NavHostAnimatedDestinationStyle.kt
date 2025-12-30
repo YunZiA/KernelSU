@@ -21,6 +21,14 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
+
+object MiuixNavHostDefaults {
+    const val TRANSITION_DURATION = 500
+    const val SHARETRANSITION_DURATION = 550
+
+    val NavAnimationEasing = NavTransitionEasing(0.8f, 0.95f)
+}
+
 @Immutable
 class NavTransitionEasing @JvmOverloads constructor(
     response: Float = 0.3f,

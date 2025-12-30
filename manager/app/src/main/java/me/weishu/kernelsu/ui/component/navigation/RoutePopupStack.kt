@@ -1,10 +1,11 @@
 package me.weishu.kernelsu.ui.component.navigation
 
 import android.util.Log
+import androidx.compose.runtime.saveable.Saver
 
 class RoutePopupStack {
-    private val _keyOrder = mutableListOf<String>()
-    private val _state = mutableMapOf<String, Boolean>()
+    internal val _keyOrder = mutableListOf<String>()
+    internal val _state = mutableMapOf<String, Boolean>()
 
     val keys: List<String> get() = _keyOrder
     val state: Map<String, Boolean> get() = _state
@@ -32,15 +33,38 @@ class RoutePopupStack {
     }
 
     fun remove(key: String) {
-        _keyOrder.remove(key) // O(n)，但通常列表很短
+        _keyOrder.remove(key)
         _state.remove(key)
+    }
+
+    fun clear(){
+        _keyOrder.clear()
+        _state.clear()
     }
 
     fun isEmpty(): Boolean = _keyOrder.isEmpty()
     fun isNotEmpty(): Boolean = _keyOrder.isNotEmpty()
-
     fun contains(key: String): Boolean = _state.containsKey(key)
 
-    fun getValue(key: String): Boolean = _state[key] ?: run{ Log.d("RoutePopupStack", " $key null")
-        return false }
+    fun getValue(key: String): Boolean {
+        return _state.getOrDefault(key, false).also {
+            if (!_state.containsKey(key)) {
+                Log.d("RoutePopupStack", "$key not found")
+            }
+        }
+    }
+
+    companion object {
+        val Saver = Saver<RoutePopupStack, Pair<List<String>, Map<String, Boolean>>>(
+            save = { stack ->
+                stack.keys to stack.state // ✅ 只用 public getter
+            },
+            restore = { (keys, stateMap) ->
+                RoutePopupStack().apply {
+                    _keyOrder.addAll(keys)     // ✅ internal，同模块可写
+                    _state.putAll(stateMap)
+                }
+            }
+        )
+    }
 }

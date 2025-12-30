@@ -29,12 +29,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.dropUnlessResumed
@@ -51,7 +53,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.component.KeyEventBlocker
-import me.weishu.kernelsu.ui.component.navigation.popBackStackEx
+import me.weishu.kernelsu.ui.component.navigation.MiuixDestinationsNavigator
 import me.weishu.kernelsu.ui.util.runModuleAction
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -59,8 +61,8 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Back
-import top.yukonga.miuix.kmp.icon.icons.useful.Save
+import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.icon.extended.Download
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import java.io.File
@@ -70,7 +72,7 @@ import java.util.Locale
 
 @Composable
 @Destination<RootGraph>
-fun ExecuteModuleActionScreen(navigator: DestinationsNavigator, moduleId: String) {
+fun ExecuteModuleActionScreen(navigator: MiuixDestinationsNavigator, moduleId: String) {
     var text by rememberSaveable { mutableStateOf("") }
     var tempText: String
     val logContent = rememberSaveable { StringBuilder() }
@@ -107,17 +109,17 @@ fun ExecuteModuleActionScreen(navigator: DestinationsNavigator, moduleId: String
                 actionResult = it
             }
         }
-        if (actionResult) navigator.popBackStackEx()
+        if (actionResult) navigator.popBackStack()
     }
     BackHandler {
-        navigator.popBackStackEx()
+        navigator.popBackStack()
     }
 
     Scaffold(
         topBar = {
             TopBar(
                 onBack = dropUnlessResumed {
-                    navigator.popBackStackEx()
+                    navigator.popBackStack()
                 },
                 onSave = {
                     scope.launch {
@@ -192,8 +194,12 @@ private fun TopBar(
                 modifier = Modifier.padding(start = 16.dp),
                 onClick = onBack
             ) {
+                val layoutDirection = LocalLayoutDirection.current
                 Icon(
-                    imageVector = MiuixIcons.Useful.Back,
+                    modifier = Modifier.graphicsLayer {
+                        if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
+                    },
+                    imageVector = MiuixIcons.Back,
                     contentDescription = null,
                     tint = colorScheme.onBackground
                 )
@@ -205,7 +211,7 @@ private fun TopBar(
                 onClick = onSave
             ) {
                 Icon(
-                    imageVector = MiuixIcons.Useful.Save,
+                    imageVector = MiuixIcons.Download,
                     contentDescription = stringResource(id = R.string.save_log),
                     tint = colorScheme.onBackground
                 )

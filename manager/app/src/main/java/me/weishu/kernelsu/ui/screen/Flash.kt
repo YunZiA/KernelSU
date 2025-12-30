@@ -36,12 +36,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.dropUnlessResumed
@@ -54,7 +56,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.component.KeyEventBlocker
-import me.weishu.kernelsu.ui.component.navigation.popBackStackEx
+import me.weishu.kernelsu.ui.component.navigation.MiuixDestinationsNavigator
 import me.weishu.kernelsu.ui.util.FlashResult
 import me.weishu.kernelsu.ui.util.LkmSelection
 import me.weishu.kernelsu.ui.util.flashModule
@@ -69,8 +71,8 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Back
-import top.yukonga.miuix.kmp.icon.icons.useful.Move
+import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.icon.extended.Share
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import java.io.File
@@ -108,7 +110,7 @@ fun flashModulesSequentially(
 @Composable
 @Destination<RootGraph>
 fun FlashScreen(
-    navigator: DestinationsNavigator,
+    navigator: MiuixDestinationsNavigator,
     flashIt: FlashIt
 ) {
     var text by rememberSaveable { mutableStateOf("") }
@@ -152,13 +154,13 @@ fun FlashScreen(
     }
 
     BackHandler {
-        navigator.popBackStackEx()
+        navigator.popBackStack()
     }
     Scaffold(
         topBar = {
             TopBar(
                 flashing,
-                onBack = dropUnlessResumed { navigator.popBackStackEx() },
+                onBack = dropUnlessResumed { navigator.popBackStack() },
                 onSave = {
                     scope.launch {
                         val format = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.getDefault())
@@ -297,8 +299,12 @@ private fun TopBar(
                 modifier = Modifier.padding(start = 16.dp),
                 onClick = onBack
             ) {
+                val layoutDirection = LocalLayoutDirection.current
                 Icon(
-                    MiuixIcons.Useful.Back,
+                    modifier = Modifier.graphicsLayer {
+                        if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
+                    },
+                    imageVector = MiuixIcons.Back,
                     contentDescription = null,
                     tint = colorScheme.onBackground
                 )
@@ -310,7 +316,7 @@ private fun TopBar(
                 onClick = onSave
             ) {
                 Icon(
-                    imageVector = MiuixIcons.Useful.Move,
+                    imageVector = MiuixIcons.Share,
                     contentDescription = stringResource(id = R.string.save_log),
                     tint = colorScheme.onBackground
                 )

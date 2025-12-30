@@ -43,20 +43,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AppProfileTemplateScreenDestination
-import com.ramcosta.composedestinations.generated.destinations.TemplateEditorScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.TemplateScreenDestination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.ramcosta.composedestinations.scope.AnimatedDestinationScope
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -70,13 +70,11 @@ import me.weishu.kernelsu.ui.component.DropdownItem
 import me.weishu.kernelsu.ui.component.SharedTransitionCard
 import me.weishu.kernelsu.ui.component.navigation.LocalAnimatedVisibilityScope
 import me.weishu.kernelsu.ui.component.navigation.LocalSharedTransitionScope
-import me.weishu.kernelsu.ui.component.navigation.navigateEx
-import me.weishu.kernelsu.ui.component.navigation.popBackStackEx
+import me.weishu.kernelsu.ui.component.navigation.MiuixDestinationsNavigator
 import me.weishu.kernelsu.ui.component.profile.AppProfileConfig
 import me.weishu.kernelsu.ui.component.profile.RootProfileConfig
 import me.weishu.kernelsu.ui.component.profile.TemplateConfig
 import me.weishu.kernelsu.ui.component.sharedTransition.TransitionSource
-import me.weishu.kernelsu.ui.component.sharedTransition.cardShareBounds
 import me.weishu.kernelsu.ui.util.forceStopApp
 import me.weishu.kernelsu.ui.util.getSepolicy
 import me.weishu.kernelsu.ui.util.launchApp
@@ -91,7 +89,6 @@ import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.ListPopup
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
@@ -102,10 +99,11 @@ import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.extra.SuperDropdown
+import top.yukonga.miuix.kmp.extra.SuperListPopup
 import top.yukonga.miuix.kmp.extra.SuperSwitch
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Back
-import top.yukonga.miuix.kmp.icon.icons.useful.ImmersionMore
+import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.icon.extended.MoreCircle
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
@@ -117,8 +115,8 @@ import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 @Composable
 @Destination<RootGraph>
 fun AppProfileScreen(
-    navigator: DestinationsNavigator,
-    appInfo: SuperUserViewModel.AppInfo
+    navigator: MiuixDestinationsNavigator,
+    appInfo: SuperUserViewModel.AppInfo,
 ) {
     val context = LocalContext.current
     val scrollBehavior = MiuixScrollBehavior()
@@ -159,7 +157,7 @@ fun AppProfileScreen(
     Scaffold(
         topBar = {
             TopBar(
-                onBack = dropUnlessResumed { navigator.popBackStackEx() },
+                onBack = dropUnlessResumed { navigator.popBackStack() },
                 packageName = packageName,
                 showActions = !isUidGroup,
                 scrollBehavior = scrollBehavior,
@@ -209,13 +207,13 @@ fun AppProfileScreen(
                     affectedApps = sameUidApps,
                     onViewTemplate = {
                         getTemplateInfoById(it)?.let { info ->
-                            navigator.navigateEx(TemplateScreenDestination(info,TransitionSource.NULL)) {
+                            navigator.navigate(TemplateScreenDestination(info,TransitionSource.NULL)) {
                                 launchSingleTop = true
                             }
                         }
                     },
                     onManageTemplate = {
-                        navigator.navigateEx(AppProfileTemplateScreenDestination()) {
+                        navigator.navigate(AppProfileTemplateScreenDestination()) {
                             launchSingleTop = true
                         }
                     },
@@ -582,8 +580,12 @@ private fun TopBar(
                 modifier = Modifier.padding(start = 16.dp),
                 onClick = onBack
             ) {
+                val layoutDirection = LocalLayoutDirection.current
                 Icon(
-                    imageVector = MiuixIcons.Useful.Back,
+                    modifier = Modifier.graphicsLayer {
+                        if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
+                    },
+                    imageVector = MiuixIcons.Back,
                     contentDescription = null,
                     tint = colorScheme.onBackground
                 )
@@ -598,16 +600,16 @@ private fun TopBar(
                     holdDownState = showTopPopup.value
                 ) {
                     Icon(
-                        imageVector = MiuixIcons.Useful.ImmersionMore,
+                        imageVector = MiuixIcons.MoreCircle,
                         tint = colorScheme.onSurface,
                         contentDescription = stringResource(id = R.string.settings)
                     )
                 }
-                ListPopup(
+                SuperListPopup(
                     show = showTopPopup,
                     onDismissRequest = { showTopPopup.value = false },
                     popupPositionProvider = ListPopupDefaults.ContextMenuPositionProvider,
-                    alignment = PopupPositionProvider.Align.TopRight,
+                    alignment = PopupPositionProvider.Align.TopEnd,
                 ) {
                     ListPopupColumn {
                         val items = listOf(

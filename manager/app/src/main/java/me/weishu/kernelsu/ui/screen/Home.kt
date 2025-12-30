@@ -33,7 +33,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.ErrorOutline
-import androidx.compose.material.icons.rounded.Link
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -67,7 +66,7 @@ import me.weishu.kernelsu.getKernelVersion
 import me.weishu.kernelsu.ui.LocalHandlePageChange
 import me.weishu.kernelsu.ui.component.DropdownItem
 import me.weishu.kernelsu.ui.component.RebootListPopup
-import me.weishu.kernelsu.ui.component.navigation.navigateEx
+import me.weishu.kernelsu.ui.component.navigation.MiuixDestinationsNavigator
 import me.weishu.kernelsu.ui.component.rememberConfirmDialog
 import me.weishu.kernelsu.ui.theme.isInDarkTheme
 import me.weishu.kernelsu.ui.util.checkNewVersion
@@ -86,6 +85,8 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Link
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.isDynamicColor
@@ -95,7 +96,7 @@ import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
 @Composable
 fun HomePager(
-    navigator: DestinationsNavigator,
+    navigator: MiuixDestinationsNavigator,
     bottomInnerPadding: Dp
 ) {
     val kernelVersion = getKernelVersion()
@@ -168,7 +169,7 @@ fun HomePager(
                     StatusCard(
                         kernelVersion, ksuVersion, lkmMode,
                         onClickInstall = {
-                            navigator.navigateEx(InstallScreenDestination) {
+                            navigator.navigate(InstallScreenDestination) {
                                 launchSingleTop = true
                             }
                         },
@@ -541,8 +542,7 @@ fun LearnMoreCard() {
             summary = stringResource(R.string.home_click_to_learn_kernelsu),
             rightActions = {
                 Icon(
-                    modifier = Modifier.size(28.dp),
-                    imageVector = Icons.Rounded.Link,
+                    imageVector = MiuixIcons.Link,
                     tint = colorScheme.onSurface,
                     contentDescription = null
                 )
@@ -567,8 +567,7 @@ fun DonateCard() {
             summary = stringResource(R.string.home_support_content),
             rightActions = {
                 Icon(
-                    modifier = Modifier.size(28.dp),
-                    imageVector = Icons.Rounded.Link,
+                    imageVector = MiuixIcons.Link,
                     tint = colorScheme.onSurface,
                     contentDescription = null
                 )

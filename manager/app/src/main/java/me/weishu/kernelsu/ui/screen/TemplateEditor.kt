@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.captionBar
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
@@ -27,11 +28,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.ramcosta.composedestinations.annotation.Destination
@@ -48,7 +52,8 @@ import me.weishu.kernelsu.ui.component.EditText
 import me.weishu.kernelsu.ui.component.sharedTransition.TransitionSource
 import me.weishu.kernelsu.ui.component.sharedTransition.screenShareBounds
 import me.weishu.kernelsu.ui.component.navigation.LocalSharedTransitionScope
-import me.weishu.kernelsu.ui.component.navigation.navigateBackEx
+import me.weishu.kernelsu.ui.component.navigation.ResultBackMiuixNavigator
+import me.weishu.kernelsu.ui.component.navigation.resultBackMiuixNavigator
 import me.weishu.kernelsu.ui.component.profile.RootProfileConfig
 import me.weishu.kernelsu.ui.util.deleteAppProfileTemplate
 import me.weishu.kernelsu.ui.util.getAppProfileTemplate
@@ -63,11 +68,10 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Back
-import top.yukonga.miuix.kmp.icon.icons.useful.Confirm
-import top.yukonga.miuix.kmp.icon.icons.useful.Delete
+import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.icon.extended.Delete
+import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
-import top.yukonga.miuix.kmp.utils.getWindowSize
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
@@ -86,10 +90,11 @@ fun TemplateEditorScreen(
     navigator: ResultBackNavigator<Boolean>,
     animatedVisibilityScope: AnimatedVisibilityScope,
     initialTemplate: TemplateViewModel.TemplateInfo,
-    transitionSource : TransitionSource = TransitionSource.NULL,
+    transitionSource: TransitionSource = TransitionSource.NULL,
     readOnly: Boolean = true,
 ) {
 
+    val miuixNavigator = resultBackMiuixNavigator(navigator)
     val isCreation = initialTemplate.id.isBlank()
     val autoSave = !isCreation
 
@@ -106,7 +111,7 @@ fun TemplateEditorScreen(
     val sharedTransitionScope = LocalSharedTransitionScope.current
 
     BackHandler {
-        navigator.navigateBackEx(result = !readOnly)
+        miuixNavigator.navigateBack(result = !readOnly)
     }
 
     Box(
@@ -137,10 +142,10 @@ fun TemplateEditorScreen(
                     },
                     readOnly = readOnly,
                     isCreation = isCreation,
-                    onBack = dropUnlessResumed { navigator.navigateBackEx(result = !readOnly) },
+                    onBack = dropUnlessResumed { miuixNavigator.navigateBack(result = !readOnly) },
                     onDelete = {
                         if (deleteAppProfileTemplate(template.id)) {
-                            navigator.navigateBackEx(result = true)
+                            miuixNavigator.navigateBack(result = true)
                         }
                     },
                     onSave = {
@@ -158,7 +163,7 @@ fun TemplateEditorScreen(
                             }
                         }
                         if (saveTemplate(template, isCreation)) {
-                            navigator.navigateBackEx(result = true)
+                            miuixNavigator.navigateBack(result = true)
                         } else {
                             Toast.makeText(context, saveTemplateFailed, Toast.LENGTH_SHORT).show()
                         }
@@ -173,7 +178,7 @@ fun TemplateEditorScreen(
         ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier
-                    .height(getWindowSize().height.dp)
+                    .fillMaxHeight()
                     .scrollEndHaptic()
                     .overScrollVertical()
                     .nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -278,8 +283,6 @@ fun TemplateEditorScreen(
                     )
                 }
             }
-
-
         }
     }
 }
@@ -351,8 +354,12 @@ private fun TopBar(
                 modifier = Modifier.padding(start = 16.dp),
                 onClick = onBack
             ) {
+                val layoutDirection = LocalLayoutDirection.current
                 Icon(
-                    imageVector = MiuixIcons.Useful.Back,
+                    modifier = Modifier.graphicsLayer {
+                        if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
+                    },
+                    imageVector = MiuixIcons.Back,
                     contentDescription = null,
                     tint = colorScheme.onSurface
                 )
@@ -366,7 +373,7 @@ private fun TopBar(
                         onClick = onDelete
                     ) {
                         Icon(
-                            imageVector = MiuixIcons.Useful.Delete,
+                            imageVector = MiuixIcons.Delete,
                             contentDescription = stringResource(id = R.string.app_profile_template_delete),
                             tint = colorScheme.onBackground
                         )
@@ -379,7 +386,7 @@ private fun TopBar(
                         onClick = onSave
                     ) {
                         Icon(
-                            imageVector = MiuixIcons.Useful.Confirm,
+                            imageVector = MiuixIcons.Ok,
                             contentDescription = stringResource(id = R.string.app_profile_template_save),
                             tint = colorScheme.onBackground
                         )

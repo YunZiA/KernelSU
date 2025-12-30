@@ -28,19 +28,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.FixedScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.kyant.capsule.ContinuousRoundedRectangle
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -48,7 +50,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import me.weishu.kernelsu.BuildConfig
 import me.weishu.kernelsu.R
-import me.weishu.kernelsu.ui.component.navigation.popBackStackEx
+import me.weishu.kernelsu.ui.component.navigation.MiuixDestinationsNavigator
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -58,13 +60,13 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.extra.SuperArrow
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Back
+import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 @Composable
 @Destination<RootGraph>
-fun AboutScreen(navigator: DestinationsNavigator) {
+fun AboutScreen(navigator: MiuixDestinationsNavigator) {
     val uriHandler = LocalUriHandler.current
     val scrollBehavior = MiuixScrollBehavior()
     val hazeState = remember { HazeState() }
@@ -81,7 +83,7 @@ fun AboutScreen(navigator: DestinationsNavigator) {
     val result = extractLinks(htmlString)
 
     BackHandler {
-        navigator.popBackStackEx()
+        navigator.popBackStack()
     }
     Scaffold(
         topBar = {
@@ -96,10 +98,14 @@ fun AboutScreen(navigator: DestinationsNavigator) {
                 navigationIcon = {
                     IconButton(
                         modifier = Modifier.padding(start = 16.dp),
-                        onClick = dropUnlessResumed { navigator.popBackStackEx() }
+                        onClick = dropUnlessResumed { navigator.popBackStack() }
                     ) {
+                        val layoutDirection = LocalLayoutDirection.current
                         Icon(
-                            imageVector = MiuixIcons.Useful.Back,
+                            modifier = Modifier.graphicsLayer {
+                                if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
+                            },
+                            imageVector = MiuixIcons.Back,
                             contentDescription = null,
                             tint = colorScheme.onBackground
                         )

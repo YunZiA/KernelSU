@@ -90,7 +90,6 @@ import com.kyant.capsule.ContinuousRoundedRectangle
 import com.ramcosta.composedestinations.generated.destinations.ExecuteModuleActionScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.FlashScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.ModuleRepoScreenDestination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -107,7 +106,7 @@ import me.weishu.kernelsu.ui.component.ConfirmResult
 import me.weishu.kernelsu.ui.component.RebootListPopup
 import me.weishu.kernelsu.ui.component.SearchBox
 import me.weishu.kernelsu.ui.component.SearchPager
-import me.weishu.kernelsu.ui.component.navigation.navigateEx
+import me.weishu.kernelsu.ui.component.navigation.MiuixDestinationsNavigator
 import me.weishu.kernelsu.ui.component.rememberConfirmDialog
 import me.weishu.kernelsu.ui.component.rememberLoadingDialog
 import me.weishu.kernelsu.ui.theme.isInDarkTheme
@@ -123,11 +122,11 @@ import me.weishu.kernelsu.ui.util.uninstallModule
 import me.weishu.kernelsu.ui.viewmodel.ModuleViewModel
 import me.weishu.kernelsu.ui.webui.WebUIActivity
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.ListPopup
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
@@ -138,21 +137,21 @@ import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
-import top.yukonga.miuix.kmp.extra.DropdownImpl
+import top.yukonga.miuix.kmp.extra.SuperListPopup
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Delete
-import top.yukonga.miuix.kmp.icon.icons.useful.ImmersionMore
-import top.yukonga.miuix.kmp.icon.icons.useful.Save
-import top.yukonga.miuix.kmp.icon.icons.useful.Undo
+import top.yukonga.miuix.kmp.icon.extended.Delete
+import top.yukonga.miuix.kmp.icon.extended.Download
+import top.yukonga.miuix.kmp.icon.extended.MoreCircle
+import top.yukonga.miuix.kmp.icon.extended.Undo
+import top.yukonga.miuix.kmp.icon.extended.UploadCloud
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
-import top.yukonga.miuix.kmp.utils.getWindowSize
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
 @SuppressLint("StringFormatInvalid", "LocalContextGetResourceValueCall")
 @Composable
 fun ModulePager(
-    navigator: DestinationsNavigator,
+    navigator: MiuixDestinationsNavigator,
     bottomInnerPadding: Dp
 ) {
     val viewModel = viewModel<ModuleViewModel>()
@@ -423,10 +422,10 @@ fun ModulePager(
                     title = stringResource(R.string.module),
                     actions = {
                         val showTopPopup = remember { mutableStateOf(false) }
-                        ListPopup(
+                        SuperListPopup(
                             show = showTopPopup,
                             popupPositionProvider = ListPopupDefaults.ContextMenuPositionProvider,
-                            alignment = PopupPositionProvider.Align.TopRight,
+                            alignment = PopupPositionProvider.Align.TopEnd,
                             onDismissRequest = {
                                 showTopPopup.value = false
                             }
@@ -472,29 +471,29 @@ fun ModulePager(
                             holdDownState = showTopPopup.value
                         ) {
                             Icon(
-                                imageVector = MiuixIcons.Useful.ImmersionMore,
+                                imageVector = MiuixIcons.MoreCircle,
                                 tint = colorScheme.onSurface,
-                                contentDescription = stringResource(id = R.string.settings)
+                                contentDescription = null
                             )
                         }
                         RebootListPopup(
                             modifier = Modifier.padding(end = 16.dp),
-                            alignment = PopupPositionProvider.Align.TopRight
+                            alignment = PopupPositionProvider.Align.TopEnd,
                         )
                     },
                     navigationIcon = {
                         IconButton(
                             modifier = Modifier.padding(start = 16.dp),
                             onClick = {
-                                navigator.navigateEx(ModuleRepoScreenDestination) {
+                                navigator.navigate(ModuleRepoScreenDestination) {
                                     launchSingleTop = true
                                 }
                             },
                         ) {
                             Icon(
-                                imageVector = MiuixIcons.Useful.Save,
+                                imageVector = MiuixIcons.Download,
                                 tint = colorScheme.onSurface,
-                                contentDescription = stringResource(id = R.string.settings)
+                                contentDescription = null
                             )
                         }
                     },
@@ -509,7 +508,7 @@ fun ModulePager(
                 var zipUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
                 val confirmDialog = rememberConfirmDialog(
                     onConfirm = {
-                        navigator.navigateEx(FlashScreenDestination(FlashIt.FlashModules(zipUris))) {
+                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(zipUris))) {
                             launchSingleTop = true
                         }
                         viewModel.markNeedRefresh()
@@ -534,7 +533,7 @@ fun ModulePager(
                     }
 
                     if (uris.size == 1) {
-                        navigator.navigateEx(FlashScreenDestination(FlashIt.FlashModules(listOf(uris.first())))) {
+                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(listOf(uris.first())))) {
                             launchSingleTop = true
                         }
                         viewModel.markNeedRefresh()
@@ -631,7 +630,7 @@ fun ModulePager(
                                         "${currentModuleState.value.name}-${moduleUpdateInfo.version}.zip",
                                         context
                                     ) { uri ->
-                                        navigator.navigateEx(FlashScreenDestination(FlashIt.FlashModules(listOf(uri)))) {
+                                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(listOf(uri)))) {
                                             launchSingleTop = true
                                         }
                                         viewModel.markNeedRefresh()
@@ -642,7 +641,7 @@ fun ModulePager(
                         }
                         val onExecuteActionClick = remember(module.id, navigator, viewModel) {
                             {
-                                navigator.navigateEx(ExecuteModuleActionScreenDestination(currentModuleState.value.id)) {
+                                navigator.navigate(ExecuteModuleActionScreenDestination(currentModuleState.value.id)) {
                                     launchSingleTop = true
                                 }
                                 viewModel.markNeedRefresh()
@@ -708,7 +707,7 @@ fun ModulePager(
                         navigator,
                         viewModel = viewModel,
                         modifier = Modifier
-                            .height(getWindowSize().height.dp)
+                            .fillMaxHeight()
                             .scrollEndHaptic()
                             .overScrollVertical()
                             .nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -717,7 +716,7 @@ fun ModulePager(
                         scope = scope,
                         modules = modules,
                         onInstallModule = {
-                            navigator.navigateEx(FlashScreenDestination(FlashIt.FlashModules(listOf(it)))) {
+                            navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(listOf(it)))) {
                                 launchSingleTop = true
                             }
                         },
@@ -741,7 +740,7 @@ fun ModulePager(
                                 fileName,
                                 context
                             ) { uri ->
-                                navigator.navigateEx(FlashScreenDestination(FlashIt.FlashModules(listOf(uri)))) {
+                                navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(listOf(uri)))) {
                                     launchSingleTop = true
                                 }
                                 viewModel.markNeedRefresh()
@@ -760,7 +759,7 @@ fun ModulePager(
 
 @Composable
 private fun ModuleList(
-    navigator: DestinationsNavigator,
+    navigator: MiuixDestinationsNavigator,
     viewModel: ModuleViewModel,
     modifier: Modifier = Modifier,
     scope: CoroutineScope,
@@ -887,7 +886,7 @@ private fun ModuleList(
                         }
                         val onExecuteActionClick = remember(module.id, navigator, viewModel) {
                             {
-                                navigator.navigateEx(ExecuteModuleActionScreenDestination(currentModuleState.value.id)) {
+                                navigator.navigate(ExecuteModuleActionScreenDestination(currentModuleState.value.id)) {
                                     launchSingleTop = true
                                 }
                                 viewModel.markNeedRefresh()
@@ -1116,7 +1115,7 @@ fun ModuleItem(
                     ) {
                         Icon(
                             modifier = Modifier.size(20.dp),
-                            imageVector = MiuixIcons.Useful.Save,
+                            imageVector = MiuixIcons.UploadCloud,
                             tint = updateTint,
                             contentDescription = stringResource(R.string.module_update),
                         )
@@ -1151,9 +1150,9 @@ fun ModuleItem(
                     Icon(
                         modifier = Modifier.size(20.dp),
                         imageVector = if (module.remove) {
-                            MiuixIcons.Useful.Undo
+                            MiuixIcons.Undo
                         } else {
-                            MiuixIcons.Useful.Delete
+                            MiuixIcons.Delete
                         },
                         tint = actionIconTint,
                         contentDescription = null

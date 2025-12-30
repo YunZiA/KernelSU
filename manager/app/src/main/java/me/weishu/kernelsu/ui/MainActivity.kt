@@ -1,6 +1,7 @@
 package me.weishu.kernelsu.ui
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
@@ -11,12 +12,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -25,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -36,8 +30,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.core.util.Consumer
 import androidx.navigation.compose.rememberNavController
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -54,29 +49,26 @@ import com.ramcosta.composedestinations.generated.destinations.ModuleRepoScreenD
 import com.ramcosta.composedestinations.generated.destinations.SettingPagerDestination
 import com.ramcosta.composedestinations.generated.destinations.TemplateEditorScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.TemplateScreenDestination
-import com.ramcosta.composedestinations.generated.navArgs
 import com.ramcosta.composedestinations.navargs.primitives.booleanNavType
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.scope.resultBackNavigator
 import com.ramcosta.composedestinations.scope.resultRecipient
-import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.component.BottomBar
+import me.weishu.kernelsu.ui.component.navigation.MiuixDestinationsNavigator
 import me.weishu.kernelsu.ui.component.navigation.miuixComposable
 import me.weishu.kernelsu.ui.component.navigation.SharedDestinationsNavHost
-import me.weishu.kernelsu.ui.component.navigation.navigateEx
+import me.weishu.kernelsu.ui.component.navigation.miuixDestinationsNavigator
 import me.weishu.kernelsu.ui.component.navigation.noAnimated
+import me.weishu.kernelsu.ui.component.navigation.resultBackMiuixNavigator
 import me.weishu.kernelsu.ui.component.navigation.slideFromRightTransition
 import me.weishu.kernelsu.ui.component.rememberConfirmDialog
-import me.weishu.kernelsu.ui.component.sharedTransition.TransitionSource
 import me.weishu.kernelsu.ui.screen.AboutScreen
 import me.weishu.kernelsu.ui.screen.AppProfileScreen
 import me.weishu.kernelsu.ui.screen.AppProfileTemplateScreen
@@ -98,8 +90,6 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 class MainActivity : ComponentActivity() {
-
-    private val intentState = MutableStateFlow(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -148,31 +138,35 @@ class MainActivity : ComponentActivity() {
 
             KernelSUTheme(colorMode = colorMode, keyColor = keyColor) {
                 val navController = rememberNavController()
-                val navigator = navController.rememberDestinationsNavigator()
 
                 // Handle ZIP file installation from external apps
-                ZipFileIntentHandler(
-                    intentState = intentState,
-                    intent = intent,
-                    isManager = isManager,
-                    navigator = navigator
-                )
 
                 Scaffold {
                     SharedDestinationsNavHost(
                         navGraph = NavGraphs.root,
                         navController = navController,
+                        overlayContent = {
+                            ZipFileIntentHandler(
+                                isManager = isManager,
+                                navigator = this
+                            )
+                        }
                     ){
-                        miuixComposable(MainScreenDestination){ MainScreen( destinationsNavigator) }
-                        miuixComposable(AboutScreenDestination){ AboutScreen(destinationsNavigator) }
-                        miuixComposable(InstallScreenDestination){ InstallScreen(destinationsNavigator) }
-                        miuixComposable(ModuleRepoScreenDestination){ ModuleRepoScreen(destinationsNavigator) }
-                        miuixComposable(ModuleRepoDetailScreenDestination){ ModuleRepoDetailScreen(destinationsNavigator,navArgs.module) }
-                        miuixComposable(AppProfileScreenDestination){ AppProfileScreen(destinationsNavigator, navArgs.appInfo) }
-                        miuixComposable(SettingPagerDestination){ SettingPager(destinationsNavigator,0.dp) }
-                        miuixComposable(ExecuteModuleActionScreenDestination){ ExecuteModuleActionScreen(destinationsNavigator,navArgs.moduleId) }
-                        miuixComposable(FlashScreenDestination){ FlashScreen(destinationsNavigator,navArgs.flashIt) }
-                        miuixComposable(FlashScreenDestination){ FlashScreen(destinationsNavigator, navArgs.flashIt) }
+                        miuixComposable(MainScreenDestination){ MainScreen( miuixDestinationsNavigator()) }
+                        miuixComposable(AboutScreenDestination){ AboutScreen(miuixDestinationsNavigator()) }
+                        miuixComposable(InstallScreenDestination){ InstallScreen(miuixDestinationsNavigator()) }
+                        miuixComposable(ModuleRepoScreenDestination){ ModuleRepoScreen(miuixDestinationsNavigator()) }
+                        miuixComposable(ModuleRepoDetailScreenDestination){ ModuleRepoDetailScreen(miuixDestinationsNavigator(),navArgs.module) }
+                        miuixComposable(AppProfileScreenDestination){ AppProfileScreen(miuixDestinationsNavigator(), navArgs.appInfo) }
+                        miuixComposable(SettingPagerDestination){ SettingPager(miuixDestinationsNavigator(),0.dp) }
+                        miuixComposable(ExecuteModuleActionScreenDestination){ ExecuteModuleActionScreen(miuixDestinationsNavigator(),navArgs.moduleId) }
+                        miuixComposable(FlashScreenDestination){ FlashScreen(miuixDestinationsNavigator(),navArgs.flashIt) }
+                        miuixComposable(AppProfileTemplateScreenDestination, slideFromRightTransition){
+                            AppProfileTemplateScreen(
+                                navigator = miuixDestinationsNavigator(),
+                                resultRecipient = resultRecipient(booleanNavType)
+                            )
+                        }
                         miuixComposable(TemplateScreenDestination){
                             val (initialTemplate,transitionSource, readOnly) = navArgs
                             TemplateEditorScreen(
@@ -193,23 +187,14 @@ class MainActivity : ComponentActivity() {
                                 readOnly = readOnly
                             )
                         }
-                        miuixComposable(AppProfileTemplateScreenDestination, slideFromRightTransition){
-                            AppProfileTemplateScreen(
-                                navigator = destinationsNavigator,
-                                resultRecipient = resultRecipient(booleanNavType)
-                            )
-                        }
                     }
                 }
             }
         }
     }
 
-    override fun onNewIntent(intent: android.content.Intent) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        setIntent(intent)
-        // Increment intentState to trigger LaunchedEffect re-execution
-        intentState.value += 1
     }
 }
 
@@ -220,7 +205,7 @@ val LocalSelectedPage = compositionLocalOf<Int> { error("No selected page") }
 
 @Composable
 @Destination<RootGraph>(start = true)
-fun MainScreen(navController: DestinationsNavigator) {
+fun MainScreen(navController: MiuixDestinationsNavigator) {
     val activity = LocalActivity.current
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 4 })
@@ -272,6 +257,12 @@ fun MainScreen(navController: DestinationsNavigator) {
         }
     }
 
+    activity?.run {
+        this as MainActivity
+
+
+    }
+    // Handle ZIP file installation from external apps
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
             if (!animating) uiSelectedPage = page
@@ -321,12 +312,10 @@ fun MainScreen(navController: DestinationsNavigator) {
 @SuppressLint("StringFormatInvalid")
 @Composable
 private fun ZipFileIntentHandler(
-    intentState: MutableStateFlow<Int>,
-    intent: android.content.Intent?,
     isManager: Boolean,
-    navigator: DestinationsNavigator
+    navigator: MiuixDestinationsNavigator
 ) {
-    val context = LocalActivity.current ?: return
+    val activity = LocalActivity.current as ComponentActivity
     var zipUri by remember { mutableStateOf<android.net.Uri?>(null) }
     val isSafeMode = Natives.isSafeMode
     val clearZipUri = { zipUri = null }
@@ -334,7 +323,7 @@ private fun ZipFileIntentHandler(
     val installDialog = rememberConfirmDialog(
         onConfirm = {
             zipUri?.let { uri ->
-                navigator.navigateEx(FlashScreenDestination(FlashIt.FlashModules(listOf(uri))))
+                navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(listOf(uri))))
             }
             clearZipUri()
         },
@@ -342,30 +331,38 @@ private fun ZipFileIntentHandler(
     )
 
     fun getDisplayName(uri: android.net.Uri): String {
-        return uri.getFileName(context) ?: uri.lastPathSegment ?: "Unknown"
+        return uri.getFileName(activity) ?: uri.lastPathSegment ?: "Unknown"
     }
+    val context = LocalContext.current
 
-    val intentStateValue by intentState.collectAsState()
-    LaunchedEffect(intentStateValue) {
-        val uri = intent?.data ?: return@LaunchedEffect
+    DisposableEffect(Unit) {
+        // 使用 object 避免 lambda 实例不一致问题
+        val listener = Consumer<Intent> { intent -> // 处理 Deep Link / Shortcut 等val uri = intent?.data ?: return@LaunchedEffect
 
-        if (!isManager || uri.scheme != "content" || intent.type != "application/zip") {
-            return@LaunchedEffect
-        }
+            val uri = intent.data ?:return@Consumer
+            if (!isManager || uri.scheme != "content" || intent.type != "application/zip") return@Consumer
 
-        if (isSafeMode) {
-            Toast.makeText(context,
-                context.getString(R.string.safe_mode_module_disabled), Toast.LENGTH_SHORT)
-                .show()
-        } else {
-            zipUri = uri
-            installDialog.showConfirm(
-                title = context.getString(R.string.module),
-                content = context.getString(
-                    R.string.module_install_prompt_with_name,
-                    "\n${getDisplayName(uri)}"
+            if (isSafeMode) {
+                Toast.makeText(
+                    context,
+                    activity.getString(R.string.safe_mode_module_disabled), Toast.LENGTH_SHORT
                 )
-            )
+                    .show()
+            } else {
+                zipUri = uri
+                installDialog.showConfirm(
+                    title = activity.getString(R.string.module),
+                    content = activity.getString(
+                        R.string.module_install_prompt_with_name,
+                        "\n${getDisplayName(uri)}"
+                    )
+                )
+            }
+        }
+        activity.addOnNewIntentListener(listener)
+
+        onDispose {
+            activity.removeOnNewIntentListener(listener)
         }
     }
 }

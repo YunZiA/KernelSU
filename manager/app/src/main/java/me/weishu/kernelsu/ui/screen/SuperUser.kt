@@ -50,20 +50,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kyant.capsule.ContinuousRoundedRectangle
 import com.ramcosta.composedestinations.generated.destinations.AppProfileScreenDestination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -74,19 +74,19 @@ import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ksuApp
 import me.weishu.kernelsu.ui.component.AppIconImage
-import me.weishu.kernelsu.ui.component.DropdownItem
 import me.weishu.kernelsu.ui.component.SearchBox
 import me.weishu.kernelsu.ui.component.SearchPager
-import me.weishu.kernelsu.ui.component.navigation.navigateEx
+import me.weishu.kernelsu.ui.component.navigation.MiuixDestinationsNavigator
 import me.weishu.kernelsu.ui.theme.isInDarkTheme
 import me.weishu.kernelsu.ui.util.ownerNameForUid
 import me.weishu.kernelsu.ui.util.pickPrimary
 import me.weishu.kernelsu.ui.viewmodel.SuperUserViewModel
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.ListPopup
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
@@ -96,9 +96,10 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
+import top.yukonga.miuix.kmp.extra.SuperListPopup
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.basic.ArrowRight
-import top.yukonga.miuix.kmp.icon.icons.useful.ImmersionMore
+import top.yukonga.miuix.kmp.icon.basic.ArrowRight
+import top.yukonga.miuix.kmp.icon.extended.MoreCircle
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -106,7 +107,7 @@ import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
 @Composable
 fun SuperUserPager(
-    navigator: DestinationsNavigator,
+    navigator: MiuixDestinationsNavigator,
     bottomInnerPadding: Dp
 ) {
     val viewModel = viewModel<SuperUserViewModel>()
@@ -145,21 +146,18 @@ fun SuperUserPager(
                     title = stringResource(R.string.superuser),
                     actions = {
                         val showTopPopup = remember { mutableStateOf(false) }
-                        ListPopup(
+                        SuperListPopup(
                             show = showTopPopup,
                             popupPositionProvider = ListPopupDefaults.ContextMenuPositionProvider,
-                            alignment = PopupPositionProvider.Align.TopRight,
+                            alignment = PopupPositionProvider.Align.TopEnd,
                             onDismissRequest = {
                                 showTopPopup.value = false
                             }
                         ) {
                             ListPopupColumn {
-                                DropdownItem(
-                                    text = if (viewModel.showSystemApps) {
-                                        stringResource(R.string.hide_system_apps)
-                                    } else {
-                                        stringResource(R.string.show_system_apps)
-                                    },
+                                DropdownImpl(
+                                    text = stringResource(R.string.show_system_apps),
+                                    isSelected = viewModel.showSystemApps,
                                     optionSize = 1,
                                     onSelectedIndexChange = {
                                         viewModel.showSystemApps = !viewModel.showSystemApps
@@ -183,9 +181,9 @@ fun SuperUserPager(
                             holdDownState = showTopPopup.value
                         ) {
                             Icon(
-                                imageVector = MiuixIcons.Useful.ImmersionMore,
+                                imageVector = MiuixIcons.MoreCircle,
                                 tint = colorScheme.onSurface,
-                                contentDescription = stringResource(id = R.string.settings)
+                                contentDescription = null
                             )
                         }
                     },
@@ -235,7 +233,7 @@ fun SuperUserPager(
                                     }
                                 },
                             ) {
-                                navigator.navigateEx(AppProfileScreenDestination(group.primary)) {
+                                navigator.navigate(AppProfileScreenDestination(group.primary)) {
                                     launchSingleTop = true
                                 }
                             }
@@ -299,11 +297,7 @@ fun SuperUserPager(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = if (viewModel.isRefreshing) "Loading..." else "Empty",
-                        textAlign = TextAlign.Center,
-                        color = Color.Gray,
-                    )
+                    InfiniteProgressIndicator()
                 }
             } else {
                 val filteredApps = remember(SuperUserViewModel.apps) {
@@ -355,7 +349,7 @@ fun SuperUserPager(
                                             }
                                         }
                                     ) {
-                                        navigator.navigateEx(AppProfileScreenDestination(group.primary)) {
+                                        navigator.navigate(AppProfileScreenDestination(group.primary)) {
                                             launchSingleTop = true
                                         }
                                     }
@@ -563,8 +557,12 @@ private fun GroupItem(
                     }
                 }
             }
+            val layoutDirection = LocalLayoutDirection.current
             Image(
                 modifier = Modifier
+                    .graphicsLayer {
+                        if (layoutDirection == LayoutDirection.Rtl) scaleX = -1f
+                    }
                     .padding(start = 8.dp)
                     .size(width = 10.dp, height = 16.dp),
                 imageVector = MiuixIcons.Basic.ArrowRight,

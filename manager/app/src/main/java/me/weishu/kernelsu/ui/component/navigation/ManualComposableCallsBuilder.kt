@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -35,6 +34,7 @@ fun <T> ManualComposableCallsBuilder.miuixComposable(
         destination.animateWith(it)
     }
     composable(destination){
+        val routePopupState = LocalRoutePopupStack.current
         val desTransition = this.transition
         val currentState = desTransition.currentState
         val targetState = desTransition.targetState
@@ -83,7 +83,6 @@ fun <T> ManualComposableCallsBuilder.miuixComposable(
                     ) {
                         this@composable.content()
                     }
-                    Box(modifier = Modifier.background(dim.value))
                 }
             }
         }

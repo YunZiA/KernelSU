@@ -41,7 +41,6 @@ fun TemplateConfig(
     onManageTemplate: () -> Unit = {},
     onProfileChange: (Natives.Profile) -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
     val profileTemplates = listAppProfileTemplates()
     val noTemplates = profileTemplates.isEmpty()
 
@@ -86,19 +85,10 @@ fun TemplateConfig(
                         )
                     }
                 },
-                onClick = {
-                    expanded = !expanded
-                },
                 maxHeight = 280.dp
             )
             SuperArrow(
                 title = stringResource(R.string.app_profile_template_view),
-//                modifier = Modifier
-//                    .cardShareBounds(
-//                        key = template,
-//                        sharedTransitionScope = sharedTransitionScope,
-//                        animatedVisibilityScope = animatedVisibilityScope
-//                    ),
                 onClick = { onViewTemplate(template) }
             )
         }
