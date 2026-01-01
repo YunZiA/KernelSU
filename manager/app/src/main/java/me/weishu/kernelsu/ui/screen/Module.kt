@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.expandVertically
@@ -83,6 +84,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -106,6 +108,7 @@ import me.weishu.kernelsu.ui.component.ConfirmResult
 import me.weishu.kernelsu.ui.component.RebootListPopup
 import me.weishu.kernelsu.ui.component.SearchBox
 import me.weishu.kernelsu.ui.component.SearchPager
+import me.weishu.kernelsu.ui.component.TopAppBarAnim
 import me.weishu.kernelsu.ui.component.navigation.MiuixDestinationsNavigator
 import me.weishu.kernelsu.ui.component.rememberConfirmDialog
 import me.weishu.kernelsu.ui.component.rememberLoadingDialog
@@ -157,6 +160,7 @@ fun ModulePager(
     val viewModel = viewModel<ModuleViewModel>()
     val scope = rememberCoroutineScope()
     val searchStatus by viewModel.searchStatus
+    val searchTransition = rememberTransition(searchStatus.transitionState)
 
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -416,7 +420,7 @@ fun ModulePager(
 
     Scaffold(
         topBar = {
-            searchStatus.TopAppBarAnim(hazeState = hazeState, hazeStyle = hazeStyle) {
+            searchTransition.TopAppBarAnim(hazeState = hazeState, hazeStyle = hazeStyle) {
                 TopAppBar(
                     color = Color.Transparent,
                     title = stringResource(R.string.module),
@@ -574,7 +578,8 @@ fun ModulePager(
             }
         },
         popupHost = {
-            searchStatus.SearchPager(
+            searchTransition.SearchPager(
+                searchStatus = searchStatus,
                 defaultResult = {},
                 searchBarTopPadding = dynamicTopPadding,
             ) {
@@ -693,8 +698,8 @@ fun ModulePager(
 
             else -> {
                 val layoutDirection = LocalLayoutDirection.current
-                searchStatus.SearchBox(
-                    searchBarTopPadding = dynamicTopPadding,
+                searchTransition.SearchBox(
+                    searchStatus = searchStatus,
                     contentPadding = PaddingValues(
                         top = innerPadding.calculateTopPadding(),
                         start = innerPadding.calculateStartPadding(layoutDirection),
@@ -702,7 +707,7 @@ fun ModulePager(
                     ),
                     hazeState = hazeState,
                     hazeStyle = hazeStyle
-                ) { boxHeight ->
+                ) {
                     ModuleList(
                         navigator,
                         viewModel = viewModel,
@@ -748,8 +753,7 @@ fun ModulePager(
                         },
                         context = context,
                         innerPadding = innerPadding,
-                        bottomInnerPadding = bottomInnerPadding,
-                        boxHeight = boxHeight
+                        bottomInnerPadding = bottomInnerPadding
                     )
                 }
             }
@@ -772,8 +776,7 @@ private fun ModuleList(
     onModuleUpdate: suspend (ModuleViewModel.ModuleInfo, String, String, String) -> Unit,
     context: Context,
     innerPadding: PaddingValues,
-    bottomInnerPadding: Dp,
-    boxHeight: MutableState<Dp>
+    bottomInnerPadding: Dp
 ) {
     val layoutDirection = LocalLayoutDirection.current
     val updateInfoMap = viewModel.updateInfo
@@ -802,7 +805,7 @@ private fun ModuleList(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(
-                        top = innerPadding.calculateTopPadding(),
+                        top = 6.dp,
                         start = innerPadding.calculateStartPadding(layoutDirection),
                         end = innerPadding.calculateEndPadding(layoutDirection),
                         bottom = bottomInnerPadding
@@ -824,7 +827,6 @@ private fun ModuleList(
                 onRefresh = { if (!isRefreshing) isRefreshing = true },
                 refreshTexts = refreshTexts,
                 contentPadding = PaddingValues(
-                    top = innerPadding.calculateTopPadding() + boxHeight.value + 6.dp,
                     start = innerPadding.calculateStartPadding(layoutDirection),
                     end = innerPadding.calculateEndPadding(layoutDirection),
                 ),
@@ -833,7 +835,7 @@ private fun ModuleList(
                     modifier = modifier
                         .fillMaxHeight(),
                     contentPadding = PaddingValues(
-                        top = innerPadding.calculateTopPadding() + boxHeight.value + 6.dp,
+                        top = 6.dp,
                         start = innerPadding.calculateStartPadding(layoutDirection),
                         end = innerPadding.calculateEndPadding(layoutDirection),
                     ),

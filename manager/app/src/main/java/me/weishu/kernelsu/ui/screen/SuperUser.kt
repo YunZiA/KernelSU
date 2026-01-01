@@ -3,6 +3,7 @@ package me.weishu.kernelsu.ui.screen
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -76,6 +77,7 @@ import me.weishu.kernelsu.ksuApp
 import me.weishu.kernelsu.ui.component.AppIconImage
 import me.weishu.kernelsu.ui.component.SearchBox
 import me.weishu.kernelsu.ui.component.SearchPager
+import me.weishu.kernelsu.ui.component.TopAppBarAnim
 import me.weishu.kernelsu.ui.component.navigation.MiuixDestinationsNavigator
 import me.weishu.kernelsu.ui.theme.isInDarkTheme
 import me.weishu.kernelsu.ui.util.ownerNameForUid
@@ -113,6 +115,7 @@ fun SuperUserPager(
     val viewModel = viewModel<SuperUserViewModel>()
     val scope = rememberCoroutineScope()
     val searchStatus by viewModel.searchStatus
+    val searchTransition = rememberTransition(searchStatus.transitionState)
 
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -140,7 +143,7 @@ fun SuperUserPager(
 
     Scaffold(
         topBar = {
-            searchStatus.TopAppBarAnim(hazeState = hazeState, hazeStyle = hazeStyle) {
+            searchTransition.TopAppBarAnim(hazeState = hazeState, hazeStyle = hazeStyle) {
                 TopAppBar(
                     color = Color.Transparent,
                     title = stringResource(R.string.superuser),
@@ -209,7 +212,8 @@ fun SuperUserPager(
                     .map { it.uid }
                     .toSet()
             }
-            searchStatus.SearchPager(
+            searchTransition.SearchPager(
+                searchStatus = searchStatus,
                 defaultResult = {},
                 searchBarTopPadding = dynamicTopPadding,
             ) {
@@ -260,8 +264,8 @@ fun SuperUserPager(
         contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
-        searchStatus.SearchBox(
-            searchBarTopPadding = dynamicTopPadding,
+        searchTransition.SearchBox(
+            searchStatus = searchStatus,
             contentPadding = PaddingValues(
                 top = innerPadding.calculateTopPadding(),
                 start = innerPadding.calculateStartPadding(layoutDirection),
@@ -269,7 +273,7 @@ fun SuperUserPager(
             ),
             hazeState = hazeState,
             hazeStyle = hazeStyle
-        ) { boxHeight ->
+        ) {
             var isRefreshing by rememberSaveable { mutableStateOf(false) }
             val pullToRefreshState = rememberPullToRefreshState()
             LaunchedEffect(isRefreshing) {
@@ -290,7 +294,7 @@ fun SuperUserPager(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(
-                            top = innerPadding.calculateTopPadding(),
+                            top = 6.dp,
                             start = innerPadding.calculateStartPadding(layoutDirection),
                             end = innerPadding.calculateEndPadding(layoutDirection),
                             bottom = bottomInnerPadding
@@ -312,7 +316,7 @@ fun SuperUserPager(
                     onRefresh = { isRefreshing = true },
                     refreshTexts = refreshTexts,
                     contentPadding = PaddingValues(
-                        top = innerPadding.calculateTopPadding() + boxHeight.value + 6.dp,
+                        top = 6.dp,
                         start = innerPadding.calculateStartPadding(layoutDirection),
                         end = innerPadding.calculateEndPadding(layoutDirection)
                     ),
@@ -325,7 +329,7 @@ fun SuperUserPager(
                             .nestedScroll(scrollBehavior.nestedScrollConnection)
                             .hazeSource(state = hazeState),
                         contentPadding = PaddingValues(
-                            top = innerPadding.calculateTopPadding() + boxHeight.value + 6.dp,
+                            top = 6.dp,
                             start = innerPadding.calculateStartPadding(layoutDirection),
                             end = innerPadding.calculateEndPadding(layoutDirection)
                         ),

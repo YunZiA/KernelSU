@@ -5,15 +5,18 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.animations.NavHostAnimatedDestinationStyle
-import com.ramcosta.composedestinations.manualcomposablecalls.ManualComposableCallsBuilder
 import com.ramcosta.composedestinations.navigation.DependenciesContainerBuilder
 import com.ramcosta.composedestinations.rememberNavHostEngine
+import com.ramcosta.composedestinations.spec.DestinationStyle
 import com.ramcosta.composedestinations.spec.Direction
 import com.ramcosta.composedestinations.spec.NavHostEngine
 import com.ramcosta.composedestinations.spec.NavHostGraphSpec
@@ -23,6 +26,7 @@ import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
 val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { null }
 val localPopState = compositionLocalOf { false }
 val LocalAnimatedVisibilityScope =  compositionLocalOf<AnimatedVisibilityScope?> { null }
+val LocalTemporaryAnimation =  compositionLocalOf<MutableState<DestinationStyle.Animated?>?> { null }
 val LocalRoutePopupStack = compositionLocalOf<RoutePopupStack> {
     error("RoutePopupStack not provided")
 }
@@ -36,7 +40,7 @@ fun SharedDestinationsNavHost(
     navController: NavHostController,
     overlayContent: @Composable MiuixDestinationsNavigator.() -> Unit = {},
     dependenciesContainerBuilder: @Composable DependenciesContainerBuilder<*>.() -> Unit = {},
-    manualComposableCallsBuilder: ManualComposableCallsBuilder.() -> Unit = {},
+    manualComposableCallsBuilder: MiuixManualComposableCallsBuilder.() -> Unit = {},
 ){
 
     SharedTransitionLayout{
@@ -50,6 +54,7 @@ fun SharedDestinationsNavHost(
             LocalSharedTransitionScope provides this@SharedTransitionLayout,
             LocalRoutePopupStack provides routePopupState
         ) {
+
             DestinationsNavHost(
                 modifier = modifier,
                 engine = engine,
@@ -58,7 +63,7 @@ fun SharedDestinationsNavHost(
                 navController = navController,
                 defaultTransitions = defaultTransitions,
                 dependenciesContainerBuilder = dependenciesContainerBuilder,
-                manualComposableCallsBuilder = manualComposableCallsBuilder
+                manualComposableCallsBuilder = { MiuixManualComposableCallsBuilder(this,routePopupState).manualComposableCallsBuilder() }
             )
             val navigator = navController.rememberDestinationsNavigator()
             MiuixDestinationsNavigator(navigator,routePopupState).overlayContent()

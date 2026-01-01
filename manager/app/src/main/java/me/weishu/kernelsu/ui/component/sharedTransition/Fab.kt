@@ -51,9 +51,7 @@ fun Modifier.fabShareBounds(
                 clipInOverlayDuringTransition = OverlayClip(ContinuousRoundedRectangle(pagerCorner.value)),
                 boundsTransform = BoundsTransform { _, _ ->
                     tween(SHARETRANSITION_DURATION, 0, NavAnimationEasing)
-                },
-                enter = fadeIn(tween(SHARETRANSITION_DURATION, 0, NavAnimationEasing)),
-                exit = fadeOut(tween(SHARETRANSITION_DURATION, 0, NavAnimationEasing))
+                }
             )
         }
     )

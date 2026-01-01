@@ -95,6 +95,7 @@ fun TemplateEditorScreen(
 ) {
 
     val miuixNavigator = resultBackMiuixNavigator(navigator)
+    val sharedTransitionScope = LocalSharedTransitionScope.current
     val isCreation = initialTemplate.id.isBlank()
     val autoSave = !isCreation
 
@@ -108,7 +109,6 @@ fun TemplateEditorScreen(
         backgroundColor = colorScheme.surface,
         tint = HazeTint(colorScheme.surface.copy(0.8f))
     )
-    val sharedTransitionScope = LocalSharedTransitionScope.current
 
     BackHandler {
         miuixNavigator.navigateBack(result = !readOnly)

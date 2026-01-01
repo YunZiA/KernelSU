@@ -50,11 +50,6 @@ fun Modifier.screenShareBounds(
                 TransitionSource.LIST_CARD -> scaleToBounds(ContentScale.FillWidth, Alignment.TopCenter)
                 else -> scaleToBounds(ContentScale.FillWidth, Alignment.TopCenter)
             }
-            val exitDurationMillis = when(transitionSource) {
-                TransitionSource.FAB -> SHARETRANSITION_DURATION
-                TransitionSource.LIST_CARD -> SHARETRANSITION_DURATION/3*2
-                else -> 0
-            }
 
             Modifier.sharedBounds(
                 sharedContentState = rememberSharedContentState(key = "$transitionSource/$key"),
@@ -64,9 +59,7 @@ fun Modifier.screenShareBounds(
                 placeholderSize = ContentSize,
                 boundsTransform = BoundsTransform { _, _ ->
                     tween(SHARETRANSITION_DURATION, 0, NavAnimationEasing)
-                },
-                enter = fadeIn(tween(SHARETRANSITION_DURATION, 0, NavAnimationEasing)),
-                exit = fadeOut(tween(exitDurationMillis, 0, NavAnimationEasing))
+                }
             )
         }
     )

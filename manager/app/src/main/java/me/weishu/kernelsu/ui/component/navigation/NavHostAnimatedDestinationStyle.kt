@@ -16,6 +16,7 @@ import com.ramcosta.composedestinations.spec.DestinationSpec
 import me.weishu.kernelsu.ui.component.navigation.MiuixNavHostDefaults.NavAnimationEasing
 import me.weishu.kernelsu.ui.component.navigation.MiuixNavHostDefaults.SHARETRANSITION_DURATION
 import me.weishu.kernelsu.ui.component.navigation.MiuixNavHostDefaults.TRANSITION_DURATION
+import me.weishu.kernelsu.ui.component.noAnimationNavOptions
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin

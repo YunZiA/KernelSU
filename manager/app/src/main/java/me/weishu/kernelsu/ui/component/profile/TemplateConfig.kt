@@ -34,8 +34,6 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 fun TemplateConfig(
     modifier: Modifier = Modifier,
-    sharedTransitionScope: SharedTransitionScope?,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     profile: Natives.Profile,
     onViewTemplate: (id: String) -> Unit = {},
     onManageTemplate: () -> Unit = {},

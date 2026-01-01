@@ -182,8 +182,6 @@ fun AppProfileScreen(
             item {
                 AppProfileInner(
                     packageName = if (isUidGroup) "" else appInfo.packageName,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedVisibilityScope = animatedVisibilityScope,
                     appLabel = if (isUidGroup) ownerNameForUid(appInfo.uid) else appInfo.label,
                     appIcon = {
                         val iconApp = if (isUidGroup) primaryForIcon else appInfo
@@ -251,8 +249,6 @@ fun AppProfileScreen(
 @Composable
 private fun AppProfileInner(
     modifier: Modifier = Modifier,
-    sharedTransitionScope: SharedTransitionScope?,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     packageName: String,
     appLabel: String,
     appIcon: @Composable (() -> Unit),
@@ -274,56 +270,67 @@ private fun AppProfileInner(
     Column(
         modifier = modifier
     ) {
-        SharedTransitionCard(
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp)
                 .padding(bottom = 12.dp),
-            insideMargin = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                appIcon()
-                Column(
-                    modifier = Modifier
-                        .padding(start = 16.dp, end = 8.dp)
-                        .weight(1f),
+            insideMargin = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+            content = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = appLabel,
-                        color = colorScheme.onSurface,
-                        fontWeight = FontWeight(550),
+                    appIcon()
+                    Column(
                         modifier = Modifier
-                            .basicMarquee(),
-                        maxLines = 1,
-                        softWrap = false
-                    )
-                    if (!isUidGroup) {
+                            .padding(start = 16.dp, end = 8.dp)
+                            .weight(1f),
+                    ) {
                         Text(
-                            text = "$appVersionName ($appVersionCode)",
-                            fontSize = 12.sp,
-                            color = colorScheme.onSurfaceVariantSummary,
-                            fontWeight = FontWeight.Medium,
+                            text = appLabel,
+                            color = colorScheme.onSurface,
+                            fontWeight = FontWeight(550),
                             modifier = Modifier
                                 .basicMarquee(),
                             maxLines = 1,
                             softWrap = false
                         )
-                        Text(
-                            text = packageName,
-                            fontSize = 12.sp,
-                            color = colorScheme.onSurfaceVariantSummary,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .basicMarquee(),
-                            maxLines = 1,
-                            softWrap = false
-                        )
-                    } else {
-                        if (sharedUserId.isNotEmpty()) {
+                        if (!isUidGroup) {
                             Text(
-                                text = sharedUserId,
+                                text = "$appVersionName ($appVersionCode)",
+                                fontSize = 12.sp,
+                                color = colorScheme.onSurfaceVariantSummary,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier
+                                    .basicMarquee(),
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                            Text(
+                                text = packageName,
+                                fontSize = 12.sp,
+                                color = colorScheme.onSurfaceVariantSummary,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier
+                                    .basicMarquee(),
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        } else {
+                            if (sharedUserId.isNotEmpty()) {
+                                Text(
+                                    text = sharedUserId,
+                                    fontSize = 12.sp,
+                                    color = colorScheme.onSurfaceVariantSummary,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier
+                                        .basicMarquee(),
+                                    maxLines = 1,
+                                    softWrap = false
+                                )
+                            }
+                            Text(
+                                text = stringResource(R.string.group_contains_apps, affectedApps.size),
                                 fontSize = 12.sp,
                                 color = colorScheme.onSurfaceVariantSummary,
                                 fontWeight = FontWeight.Medium,
@@ -333,44 +340,34 @@ private fun AppProfileInner(
                                 softWrap = false
                             )
                         }
-                        Text(
-                            text = stringResource(R.string.group_contains_apps, affectedApps.size),
-                            fontSize = 12.sp,
-                            color = colorScheme.onSurfaceVariantSummary,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .basicMarquee(),
-                            maxLines = 1,
-                            softWrap = false
-                        )
+                    }
+                    Column(
+                        modifier = Modifier,
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        if (userId != 0) {
+                            StatusTag(
+                                label = "USER $userId",
+                                backgroundColor = colorScheme.primary.copy(alpha = 0.8f),
+                                contentColor = colorScheme.onPrimary
+                            )
+                            StatusTag(
+                                label = "UID $appId",
+                                backgroundColor = colorScheme.primary.copy(alpha = 0.8f),
+                                contentColor = colorScheme.onPrimary
+                            )
+                        } else {
+                            StatusTag(
+                                label = "UID $appUid",
+                                backgroundColor = colorScheme.primary.copy(alpha = 0.8f),
+                                contentColor = colorScheme.onPrimary
+                            )
+                        }
                     }
                 }
-                Column(
-                    modifier = Modifier,
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    if (userId != 0) {
-                        StatusTag(
-                            label = "USER $userId",
-                            backgroundColor = colorScheme.primary.copy(alpha = 0.8f),
-                            contentColor = colorScheme.onPrimary
-                        )
-                        StatusTag(
-                            label = "UID $appId",
-                            backgroundColor = colorScheme.primary.copy(alpha = 0.8f),
-                            contentColor = colorScheme.onPrimary
-                        )
-                    } else {
-                        StatusTag(
-                            label = "UID $appUid",
-                            backgroundColor = colorScheme.primary.copy(alpha = 0.8f),
-                            contentColor = colorScheme.onPrimary
-                        )
-                    }
-                }
-            }
-        }
+            },
+        )
 
         Card(
             modifier = Modifier
@@ -472,8 +469,6 @@ private fun AppProfileInner(
                 ) {
                     TemplateConfig(
                         profile = profile,
-                        sharedTransitionScope =  sharedTransitionScope,
-                        animatedVisibilityScope = animatedVisibilityScope,
                         onViewTemplate = onViewTemplate,
                         onManageTemplate = onManageTemplate,
                         onProfileChange = onProfileChange

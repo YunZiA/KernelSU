@@ -1,5 +1,7 @@
 package me.weishu.kernelsu.ui.component
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -24,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.kyant.capsule.ContinuousRoundedRectangle
 import com.kyant.capsule.continuities.G1Continuity
+import me.weishu.kernelsu.ui.component.sharedTransition.cardShareBounds
 import top.yukonga.miuix.kmp.basic.CardColors
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.theme.LocalContentColor
@@ -33,7 +36,9 @@ import top.yukonga.miuix.kmp.utils.TiltFeedback
 import top.yukonga.miuix.kmp.utils.pressable
 
 @Composable
-fun SharedTransitionCard(
+fun SharedTransitionScope?.SharedTransitionCard(
+    key: String,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
     cornerRadius: Dp = CardDefaults.CornerRadius,
     insideMargin: PaddingValues = CardDefaults.InsideMargin,
@@ -71,32 +76,35 @@ fun SharedTransitionCard(
         LocalContentColor provides colors.contentColor,
     ) {
         Box(
-            modifier = Modifier
-                .padding(bottom = 12.dp)
+            modifier = modifier
                 .semantics(mergeDescendants = false) {
                     isTraversalGroup = true
                 }
-                .then(modifier)
+                .cardShareBounds(
+                    key = key,
+                    sharedTransitionScope = this,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    cardRadius = cornerRadius
+                )
                 .pressable(
                     interactionSource = usedInteractionSource,
                     indication = pressFeedback,
                     delay = null
                 )
                 .background(color = colors.color, shape = shape)
-                .clip(clipShape),
+                .clip(clipShape)
+                .combinedClickable(
+                    interactionSource = interactionSource,
+                    indication = indicationToUse,
+                    onClick = { currentOnClick?.invoke() },
+                    onLongClick = currentOnLongPress
+                ),
             contentAlignment = Alignment.TopCenter,
             propagateMinConstraints = true,
         ) {
             Column(
                 modifier = Modifier
-                    .background(color = colors.color)
                     .padding(insideMargin)
-                    .combinedClickable(
-                        interactionSource = interactionSource,
-                        indication = indicationToUse,
-                        onClick = { currentOnClick?.invoke() },
-                        onLongClick = currentOnLongPress
-                    )
                 ,
                 content = content
             )

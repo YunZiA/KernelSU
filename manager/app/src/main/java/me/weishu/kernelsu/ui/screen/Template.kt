@@ -197,187 +197,162 @@ fun AppProfileTemplateScreen(
         tint = HazeTint(colorScheme.surface.copy(0.8f))
     )
 
-    val blur = state.animateDp( { tween(SHARETRANSITION_DURATION, 0, NavAnimationEasing) }) { enterExitState ->
-        when (enterExitState) {
-            EnterExitState.PreEnter, EnterExitState.PostExit -> if (isPop) 20.dp else 0.dp
-            EnterExitState.Visible -> 0.dp
-        }
-
+    BackHandler {
+        navigator.popBackStack()
     }
-    val scale = state.animateFloat({ tween(SHARETRANSITION_DURATION, 0, NavAnimationEasing) }) { enterExitState ->
-        when (enterExitState) {
-            EnterExitState.PreEnter, EnterExitState.PostExit -> if (isPop) 0.9f else 1f
-            EnterExitState.Visible -> 1f
-        }
-
-    }
-
-    Box(
-        modifier = Modifier
-            .hazeEffect {
-                noiseFactor = 0f
-                blurEnabled = blur.value != 0.dp
-                drawContentBehind = drawContentBehind
-                blurRadius = blur.value
-            }
-    ){
-        BackHandler {
-            navigator.popBackStack()
-        }
-        Scaffold(
-            modifier = Modifier.scale(scale.value),
-            topBar = {
-                val clipboard = LocalClipboard.current
-                val context = LocalContext.current
-                val showToast = fun(msg: String) {
-                    scope.launch(Dispatchers.Main) {
-                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                    }
+    Scaffold(
+        topBar = {
+            val clipboard = LocalClipboard.current
+            val context = LocalContext.current
+            val showToast = fun(msg: String) {
+                scope.launch(Dispatchers.Main) {
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                 }
-                TopBar(
-                    onBack = dropUnlessResumed { navigator.popBackStack() },
-                    onSync = {
-                        scope.launch { viewModel.fetchTemplates(true) }
-                    },
-                    onImport = {
-                        scope.launch {
-                            clipboard.getClipEntry()?.clipData?.getItemAt(0)?.text?.toString()?.let {
-                                if (it.isEmpty()) {
-                                    showToast(context.getString(R.string.app_profile_template_import_empty))
-                                    return@let
-                                }
-                                viewModel.importTemplates(
-                                    it,
-                                    {
-                                        showToast(context.getString(R.string.app_profile_template_import_success))
-                                        viewModel.fetchTemplates(false)
-                                    },
-                                    showToast
-                                )
+            }
+            TopBar(
+                onBack = dropUnlessResumed { navigator.popBackStack() },
+                onSync = {
+                    scope.launch { viewModel.fetchTemplates(true) }
+                },
+                onImport = {
+                    scope.launch {
+                        clipboard.getClipEntry()?.clipData?.getItemAt(0)?.text?.toString()?.let {
+                            if (it.isEmpty()) {
+                                showToast(context.getString(R.string.app_profile_template_import_empty))
+                                return@let
                             }
-                        }
-                    },
-                    onExport = {
-                        scope.launch {
-                            viewModel.exportTemplates(
+                            viewModel.importTemplates(
+                                it,
                                 {
-                                    showToast(context.getString(R.string.app_profile_template_export_empty))
+                                    showToast(context.getString(R.string.app_profile_template_import_success))
+                                    viewModel.fetchTemplates(false)
                                 },
-                                {
-                                    clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("template", it)))
-                                }
+                                showToast
                             )
                         }
-                    },
-                    scrollBehavior = scrollBehavior,
-                    hazeState = hazeState,
-                    hazeStyle = hazeStyle,
-                )
-            },
-            floatingActionButton = {
-                FloatingActionButton(
-                    containerColor = colorScheme.primary,
-                    shadowElevation = 0.dp,
-                    onClick = {
-                        navigator.navigate(
-                            TemplateEditorScreenDestination(
-                                TemplateViewModel.TemplateInfo(),
-                                TransitionSource.FAB, false)
-                        ){
-                            launchSingleTop = true
-                        }
-                    },
-                    modifier = Modifier
-                        .offset(y = offsetHeight)
-                        .padding(
-                            bottom = WindowInsets.navigationBars.asPaddingValues()
-                                .calculateBottomPadding() +
-                                    WindowInsets.captionBar.asPaddingValues()
-                                        .calculateBottomPadding() + 20.dp,
-                            end = 20.dp
+                    }
+                },
+                onExport = {
+                    scope.launch {
+                        viewModel.exportTemplates(
+                            {
+                                showToast(context.getString(R.string.app_profile_template_export_empty))
+                            },
+                            {
+                                clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("template", it)))
+                            }
                         )
-                        .border(0.05.dp, colorScheme.outline.copy(alpha = 0.5f), CircleShape),
-                    contentModifier = Modifier
-                        .fabShareBounds(
-                            key = "",
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope
-                        ),
-                    content = {
-                        Icon(
-                            Icons.Rounded.Add,
-                            null,
-                            Modifier.size(40.dp),
-                            tint = colorScheme.onPrimary
-                        )
-                    },
-                )
-            },
-            popupHost = { },
-            contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
-        ) { innerPadding ->
-            var isRefreshing by rememberSaveable { mutableStateOf(false) }
-            val pullToRefreshState = rememberPullToRefreshState()
-            LaunchedEffect(isRefreshing) {
-                if (isRefreshing) {
-                    delay(350)
-                    viewModel.fetchTemplates()
-                    isRefreshing = false
-                }
-            }
-            val refreshTexts = listOf(
-                stringResource(R.string.refresh_pulling),
-                stringResource(R.string.refresh_release),
-                stringResource(R.string.refresh_refresh),
-                stringResource(R.string.refresh_complete),
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+                hazeState = hazeState,
+                hazeStyle = hazeStyle,
             )
-            val layoutDirection = LocalLayoutDirection.current
-            PullToRefresh(
-                isRefreshing = isRefreshing,
-                pullToRefreshState = pullToRefreshState,
-                onRefresh = { isRefreshing = true },
-                refreshTexts = refreshTexts,
-                contentPadding = PaddingValues(
-                    top = innerPadding.calculateTopPadding() + 12.dp,
-                    start = innerPadding.calculateStartPadding(layoutDirection),
-                    end = innerPadding.calculateEndPadding(layoutDirection)
-                ),
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                containerColor = colorScheme.primary,
+                shadowElevation = 0.dp,
+                onClick = {
+                    navigator.navigate(
+                        TemplateEditorScreenDestination(
+                            TemplateViewModel.TemplateInfo(),
+                            TransitionSource.FAB, false)
+                    ){
+                        launchSingleTop = true
+                    }
+                },
+                modifier = Modifier
+                    .offset(y = offsetHeight)
+                    .padding(
+                        bottom = WindowInsets.navigationBars.asPaddingValues()
+                            .calculateBottomPadding() +
+                                WindowInsets.captionBar.asPaddingValues()
+                                    .calculateBottomPadding() + 20.dp,
+                        end = 20.dp
+                    )
+                    .border(0.05.dp, colorScheme.outline.copy(alpha = 0.5f), CircleShape),
+                contentModifier = Modifier
+                    .fabShareBounds(
+                        key = "",
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope
+                    ),
+                content = {
+                    Icon(
+                        Icons.Rounded.Add,
+                        null,
+                        Modifier.size(40.dp),
+                        tint = colorScheme.onPrimary
+                    )
+                },
+            )
+        },
+        popupHost = { },
+        contentWindowInsets = WindowInsets.systemBars.add(WindowInsets.displayCutout).only(WindowInsetsSides.Horizontal)
+    ) { innerPadding ->
+        var isRefreshing by rememberSaveable { mutableStateOf(false) }
+        val pullToRefreshState = rememberPullToRefreshState()
+        LaunchedEffect(isRefreshing) {
+            if (isRefreshing) {
+                delay(350)
+                viewModel.fetchTemplates()
+                isRefreshing = false
+            }
+        }
+        val refreshTexts = listOf(
+            stringResource(R.string.refresh_pulling),
+            stringResource(R.string.refresh_release),
+            stringResource(R.string.refresh_refresh),
+            stringResource(R.string.refresh_complete),
+        )
+        val layoutDirection = LocalLayoutDirection.current
+        PullToRefresh(
+            isRefreshing = isRefreshing,
+            pullToRefreshState = pullToRefreshState,
+            onRefresh = { isRefreshing = true },
+            refreshTexts = refreshTexts,
+            contentPadding = PaddingValues(
+                top = innerPadding.calculateTopPadding() + 12.dp,
+                start = innerPadding.calculateStartPadding(layoutDirection),
+                end = innerPadding.calculateEndPadding(layoutDirection)
+            ),
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .scrollEndHaptic()
+                    .overScrollVertical()
+                    .nestedScroll(nestedScrollConnection)
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .hazeSource(state = hazeState)
+                    .padding(horizontal = 12.dp),
+                contentPadding = innerPadding,
+                overscrollEffect = null
             ) {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .scrollEndHaptic()
-                        .overScrollVertical()
-                        .nestedScroll(nestedScrollConnection)
-                        .nestedScroll(scrollBehavior.nestedScrollConnection)
-                        .hazeSource(state = hazeState)
-                        .padding(horizontal = 12.dp),
-                    contentPadding = innerPadding,
-                    overscrollEffect = null
-                ) {
-                    item {
-                        Spacer(Modifier.height(12.dp))
-                    }
-                    items(viewModel.templateList, key = { it.id }) { app ->
-                        TemplateItem(
-                            navigator = navigator,
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            template = app
+                item {
+                    Spacer(Modifier.height(12.dp))
+                }
+                items(viewModel.templateList, key = { it.id }) { app ->
+                    TemplateItem(
+                        navigator = navigator,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        template = app
+                    )
+                }
+                item {
+                    Spacer(
+                        Modifier.height(
+                            WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
+                                    WindowInsets.captionBar.asPaddingValues().calculateBottomPadding()
                         )
-                    }
-                    item {
-                        Spacer(
-                            Modifier.height(
-                                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
-                                        WindowInsets.captionBar.asPaddingValues().calculateBottomPadding()
-                            )
-                        )
-                    }
+                    )
                 }
             }
         }
     }
+
 }
 
 @Composable
@@ -387,15 +362,10 @@ private fun TemplateItem(
     animatedVisibilityScope: AnimatedVisibilityScope,
     template: TemplateViewModel.TemplateInfo
 ) {
-
-    SharedTransitionCard(
-        modifier = Modifier
-            .cardShareBounds(
-                key = template.id,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedVisibilityScope = animatedVisibilityScope,
-                cardRadius = CardDefaults.CornerRadius
-            ),
+    sharedTransitionScope.SharedTransitionCard(
+        key = template.id,
+        animatedVisibilityScope = animatedVisibilityScope,
+        modifier = Modifier.padding(bottom = 12.dp),
         onClick = {
             navigator.navigate(TemplateEditorScreenDestination(template, TransitionSource.LIST_CARD,!template.local)) {
                 popUpTo(TemplateEditorScreenDestination) {

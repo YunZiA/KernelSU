@@ -62,11 +62,12 @@ import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.R
 import me.weishu.kernelsu.ui.component.BottomBar
 import me.weishu.kernelsu.ui.component.navigation.MiuixDestinationsNavigator
+import me.weishu.kernelsu.ui.component.navigation.PopTransitionStyle
 import me.weishu.kernelsu.ui.component.navigation.miuixComposable
 import me.weishu.kernelsu.ui.component.navigation.SharedDestinationsNavHost
+import me.weishu.kernelsu.ui.component.navigation.defaultTransitions
 import me.weishu.kernelsu.ui.component.navigation.miuixDestinationsNavigator
 import me.weishu.kernelsu.ui.component.navigation.noAnimated
-import me.weishu.kernelsu.ui.component.navigation.resultBackMiuixNavigator
 import me.weishu.kernelsu.ui.component.navigation.slideFromRightTransition
 import me.weishu.kernelsu.ui.component.rememberConfirmDialog
 import me.weishu.kernelsu.ui.screen.AboutScreen
@@ -155,16 +156,23 @@ class MainActivity : ComponentActivity() {
                         miuixComposable(MainScreenDestination){ MainScreen( miuixDestinationsNavigator()) }
                         miuixComposable(AboutScreenDestination){ AboutScreen(miuixDestinationsNavigator()) }
                         miuixComposable(InstallScreenDestination){ InstallScreen(miuixDestinationsNavigator()) }
-                        miuixComposable(ModuleRepoScreenDestination){ ModuleRepoScreen(miuixDestinationsNavigator()) }
-                        miuixComposable(ModuleRepoDetailScreenDestination){ ModuleRepoDetailScreen(miuixDestinationsNavigator(),navArgs.module) }
                         miuixComposable(AppProfileScreenDestination){ AppProfileScreen(miuixDestinationsNavigator(), navArgs.appInfo) }
                         miuixComposable(SettingPagerDestination){ SettingPager(miuixDestinationsNavigator(),0.dp) }
                         miuixComposable(ExecuteModuleActionScreenDestination){ ExecuteModuleActionScreen(miuixDestinationsNavigator(),navArgs.moduleId) }
                         miuixComposable(FlashScreenDestination){ FlashScreen(miuixDestinationsNavigator(),navArgs.flashIt) }
-                        miuixComposable(AppProfileTemplateScreenDestination, slideFromRightTransition){
+                        miuixComposable(AppProfileTemplateScreenDestination, slideFromRightTransition,PopTransitionStyle.Depth){
                             AppProfileTemplateScreen(
                                 navigator = miuixDestinationsNavigator(),
                                 resultRecipient = resultRecipient(booleanNavType)
+                            )
+                        }
+                        miuixComposable(ModuleRepoScreenDestination,slideFromRightTransition,PopTransitionStyle.Depth){ ModuleRepoScreen(miuixDestinationsNavigator(),this@miuixComposable) }
+                        miuixComposable(ModuleRepoDetailScreenDestination,noAnimated){
+                            val (module) = navArgs
+                            ModuleRepoDetailScreen(
+                                navigator = miuixDestinationsNavigator(),
+                                animatedVisibilityScope = this@miuixComposable,
+                                module = module
                             )
                         }
                         miuixComposable(TemplateScreenDestination){
@@ -323,7 +331,11 @@ private fun ZipFileIntentHandler(
     val installDialog = rememberConfirmDialog(
         onConfirm = {
             zipUri?.let { uri ->
-                navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(listOf(uri))))
+
+                navigator.navigateWithAnim(
+                    FlashScreenDestination(FlashIt.FlashModules(listOf(uri))),
+                    defaultTransitions()
+                )
             }
             clearZipUri()
         },
